@@ -2,73 +2,71 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Web GIS Drainase Tersier</title>
+    <title>Web GIS Drainase Fix</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        body { margin: 0; padding: 0; }
-        #map { height: 100vh; width: 100%; }
-        .popup-table { font-family: Arial, sans-serif; font-size: 12px; border-collapse: collapse; width: 220px; }
-        .popup-table td { border-bottom: 1px solid #eee; padding: 4px; }
-        .popup-table b { color: #2980b9; }
+        #map { height: 100vh; width: 100%; background: #eee; }
+        .error-notif { 
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: red; color: white; padding: 15px; z-index: 1000;
+            display: none; border-radius: 8px; font-family: sans-serif;
+        }
     </style>
 </head>
 <body>
+
+    <div id="pesan-error" class="error-notif">Data Gagal Dimuat! Periksa file data_saluran.js</div>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
-
+    
     <script src="data_saluran.js"></script>
 
     <script>
-        var map = L.map('map').setView([-6.2423, 106.7808], 14);
+        // CEK APAKAH DATA TERBACA
+        if (typeof dataTersier === 'undefined') {
+            document.getElementById('pesan-error').style.display = 'block';
+        } else {
+            // Inisialisasi Map
+            var map = L.map('map').setView([-6.2423, 106.7808], 14);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        if (typeof dataTersier !== 'undefined') {
-            // 1. Tambahkan Saluran & Atribut Lengkap
+            // 1. Gambar Garis Saluran & Atribut
             var geojsonLayer = L.geoJSON(dataTersier, {
                 style: { color: "#3498db", weight: 4, opacity: 0.8 },
                 onEachFeature: function (feature, layer) {
                     var p = feature.properties;
-                    // Memanggil atribut sesuai file tersier.geojson Anda
-                    var content = `
-                        <div class="popup-table">
-                            <h4 style="margin:0; color:#e67e22;">${p.toponimi || 'Saluran'}</h4>
-                            <hr>
-                            <table>
-                                <tr><td><b>Kecamatan</b></td><td>: ${p.kecamatan || '-'}</td></tr>
-                                <tr><td><b>Kota</b></td><td>: ${p.kota || '-'}</td></tr>
-                                <tr><td><b>Lebar</b></td><td>: ${p.lebar || '-'} m</td></tr>
-                                <tr><td><b>Kedalaman</b></td><td>: ${p.kedalaman || '-'} m</td></tr>
-                                <tr><td><b>Panjang</b></td><td>: ${p.panjang || '-'} m</td></tr>
-                                <tr><td><b>Kewenangan</b></td><td>: ${p.kewenangan || '-'}</td></tr>
-                            </table>
-                        </div>`;
-                    layer.bindPopup(content);
+                    // Menampilkan data sesuai nama kolom di GeoJSON Anda
+                    layer.bindPopup(`
+                        <div style="line-height:1.5">
+                            <b>${p.toponimi || 'Tanpa Nama'}</b><br><hr>
+                            Dimensi: ${p.lebar} x ${p.kedalaman} m<br>
+                            Panjang: ${p.panjang} m<br>
+                            Kecamatan: ${p.kecamatan}
+                        </div>
+                    `);
                 }
             }).addTo(map);
 
-            // 2. Tambahkan Arah Aliran (Looping untuk setiap garis)
-            // PolylineDecorator kadang gagal jika langsung memanggil objek GeoJSON besar
-            // Maka kita buat pattern untuk setiap layer
+            // 2. Gambar Panah Merah (Dipaksa per segmen)
             geojsonLayer.eachLayer(function(layer) {
                 L.polylineDecorator(layer, {
                     patterns: [
                         {
                             offset: '20%', 
-                            repeat: '50px', 
+                            repeat: '60px', 
                             symbol: L.Symbol.arrowHead({
                                 pixelSize: 10,
-                                pathOptions: { fillOpacity: 1, color: '#ff0000', stroke: false }
+                                pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
                             })
                         }
                     ]
                 }).addTo(map);
             });
 
+            // Fokuskan kamera ke data
             map.fitBounds(geojsonLayer.getBounds());
         }
     </script>

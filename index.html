@@ -58,7 +58,7 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // --- LAYER 1: SALURAN PHB (BLUE) ---
+// --- LAYER 1: SALURAN PHB (BLUE) ---
         if (typeof dataTersier !== 'undefined') {
             var saluranLayer = L.geoJSON(dataTersier, {
                 style: { color: "blue", weight: 6, opacity: 0.9 },
@@ -66,8 +66,16 @@
                     var p = feature.properties;
                     layer.bindPopup(`
                         <div class="info-popup">
-                            <b>PHB (Tersier): ${p.toponimi || 'Tanpa Nama'}</b><br>
-                            Dimensi: ${p.lebar || '-'} x ${p.kedalaman || '-'} m
+                            <b style="color:blue; font-size:14px;">Detail Saluran PHB</b>
+                            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;">
+                            <table>
+                                <tr><td><b>Toponimi</b></td><td>: ${p.toponimi || '-'}</td></tr>
+                                <tr><td><b>Panjang</b></td><td>: ${p.panjang || '-'} m</td></tr>
+                                <tr><td><b>Lebar</b></td><td>: ${p.lebar || '-'} m</td></tr>
+                                <tr><td><b>Kedalaman</b></td><td>: ${p.kedalaman || '-'} m</td></tr>
+                                <tr><td><b>Kecamatan</b></td><td>: ${p.kecamatan || '-'}</td></tr>
+                                <tr><td><b>Shape Leng</b></td><td>: ${p.Shape_Leng ? p.Shape_Leng.toFixed(2) : '-'} m</td></tr>
+                            </table>
                         </div>
                     `);
                 }
@@ -88,7 +96,7 @@
             map.fitBounds(saluranLayer.getBounds());
         }
 
-        // --- LAYER 2: SALURAN MIKRO (CYAN) ---
+// --- LAYER 2: SALURAN MIKRO (CYAN) ---
         if (typeof dataMikro !== 'undefined') {
             var mikroLayer = L.geoJSON(dataMikro, {
                 style: { color: "cyan", weight: 3, opacity: 0.8 },
@@ -96,8 +104,9 @@
                     var p = feature.properties;
                     layer.bindPopup(`
                         <div class="info-popup">
-                            <b>Saluran Mikro: ${p.toponimi || 'Tanpa Nama'}</b><br>
-                            Kecamatan: ${p.kecamatan || '-'}
+                            <b style="color:#008b8b;">Saluran Mikro</b><br>
+                            <b>Name:</b> ${p.Name || '-'}<br>
+                            <b>Shape Leng:</b> ${p.Shape_Leng ? p.Shape_Leng.toFixed(2) : '-'} m
                         </div>
                     `);
                 }

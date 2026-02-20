@@ -6,7 +6,6 @@
     <title>WebGIS Drainase Jakarta</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     
     <style>
@@ -42,9 +41,7 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
-    
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     
     <script src="data_saluranphb.js"></script>
@@ -58,24 +55,21 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-// --- LAYER 1: SALURAN PHB (BLUE) ---
+        // --- LAYER 1: SALURAN PHB (BLUE) ---
         if (typeof dataTersier !== 'undefined') {
             var saluranLayer = L.geoJSON(dataTersier, {
                 style: { color: "blue", weight: 6, opacity: 0.9 },
                 onEachFeature: function (feature, layer) {
                     var p = feature.properties;
+                    // MENGUBAH ATRIBUT POPUP SALURAN PHB
                     layer.bindPopup(`
                         <div class="info-popup">
-                            <b style="color:blue; font-size:14px;">Detail Saluran PHB</b>
-                            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;">
-                            <table>
-                                <tr><td><b>Toponimi</b></td><td>: ${p.toponimi || '-'}</td></tr>
-                                <tr><td><b>Panjang</b></td><td>: ${p.panjang || '-'} m</td></tr>
-                                <tr><td><b>Lebar</b></td><td>: ${p.lebar || '-'} m</td></tr>
-                                <tr><td><b>Kedalaman</b></td><td>: ${p.kedalaman || '-'} m</td></tr>
-                                <tr><td><b>Kecamatan</b></td><td>: ${p.kecamatan || '-'}</td></tr>
-                                <tr><td><b>Shape Leng</b></td><td>: ${p.Shape_Leng ? p.Shape_Leng.toFixed(2) : '-'} m</td></tr>
-                            </table>
+                            <b>PHB (Tersier): ${p.toponimi || 'Tanpa Nama'}</b><br>
+                            Panjang: ${p.panjang || '-'} m<br>
+                            Lebar: ${p.lebar || '-'} m<br>
+                            Kedalaman: ${p.kedalaman || '-'} m<br>
+                            Kecamatan: ${p.kecamatan || '-'}<br>
+                            Shape Leng: ${p.Shape_Leng ? p.Shape_Leng.toFixed(2) : '-'}
                         </div>
                     `);
                 }
@@ -96,17 +90,17 @@
             map.fitBounds(saluranLayer.getBounds());
         }
 
-// --- LAYER 2: SALURAN MIKRO (CYAN) ---
+        // --- LAYER 2: SALURAN MIKRO (CYAN) ---
         if (typeof dataMikro !== 'undefined') {
             var mikroLayer = L.geoJSON(dataMikro, {
                 style: { color: "cyan", weight: 3, opacity: 0.8 },
                 onEachFeature: function (feature, layer) {
                     var p = feature.properties;
+                    // MENGUBAH ATRIBUT POPUP SALURAN MIKRO
                     layer.bindPopup(`
                         <div class="info-popup">
-                            <b style="color:#008b8b;">Saluran Mikro</b><br>
-                            <b>Name:</b> ${p.Name || '-'}<br>
-                            <b>Shape Leng:</b> ${p.Shape_Leng ? p.Shape_Leng.toFixed(2) : '-'} m
+                            <b>Saluran Mikro: ${p.Name || 'Tanpa Nama'}</b><br>
+                            Shape Leng: ${p.Shape_Leng ? p.Shape_Leng.toFixed(2) : '-'}
                         </div>
                     `);
                 }

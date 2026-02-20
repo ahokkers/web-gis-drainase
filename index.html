@@ -1,69 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Web GIS Drainase Jakarta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGIS Drainase - Saluran PHB</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
     <style>
+        body { margin: 0; padding: 0; }
         #map { height: 100vh; width: 100%; }
-        .popup-info { font-family: sans-serif; font-size: 13px; }
-        .popup-info table { width: 100%; border-collapse: collapse; }
-        .popup-info td { padding: 3px; border-bottom: 1px solid #eee; }
+        
+        /* Gaya Popup Tabel */
+        .popup-table { width: 100%; border-collapse: collapse; }
+        .popup-table td { padding: 5px; border-bottom: 1px solid #ddd; font-size: 13px; }
+        .popup-header { 
+            background: #2c3e50; color: white; padding: 8px; 
+            margin: -10px -10px 10px -10px; text-align: center; font-weight: bold; 
+        }
     </style>
 </head>
 <body>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
-    <script src="data_saluran.js"></script>
+    
+    <script src="data_saluranphb.js"></script>
 
     <script>
-        var map = L.map('map').setView([-6.2423, 106.7808], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // 1. Inisialisasi Peta (Pusat ke Jakarta Selatan/Pusat)
+        var map = L.map('map').setView([-6.2088, 106.8456], 13);
 
+        // 2. Base Map (Peta Dasar)
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 3. Menampilkan Data GeoJSON dari data_saluranphb.js
+        // Pastikan di dalam data_saluranphb.js nama variabelnya adalah dataTersier
         if (typeof dataTersier !== 'undefined') {
-            // 1. Menampilkan Saluran & Atribut
-            var geojsonLayer = L.geoJSON(dataTersier, {
-                style: { color: "#3498db", weight: 4, opacity: 0.8 },
+            
+            var layerPHB = L.geoJSON(dataTersier, {
+                style: function(feature) {
+                    return { color: "#3498db", weight: 4, opacity: 0.8 };
+                },
                 onEachFeature: function (feature, layer) {
-                    var p = feature.properties;
-                    // Menyesuaikan dengan kolom di data Anda
+                    var props = feature.properties;
                     var content = `
-                        <div class="popup-info">
-                            <h4 style="margin:0 0 5px 0;">${p.toponimi || 'Saluran'}</h4>
-                            <table>
-                                <tr><td><b>Kecamatan</b></td><td>: ${p.kecamatan || '-'}</td></tr>
-                                <tr><td><b>Panjang</b></td><td>: ${p.panjang || '-'} m</td></tr>
-                                <tr><td><b>Lebar</b></td><td>: ${p.lebar || '-'} m</td></tr>
-                                <tr><td><b>Kedalaman</b></td><td>: ${p.kedalaman_ || p.kedalaman || '-'} m</td></tr>
-                            </table>
-                        </div>`;
+                        <div class="popup-header">Info Saluran PHB</div>
+                        <table class="popup-table">
+                            <tr><td><b>Nama</b></td><td>: ${props.toponimi || '-'}</td></tr>
+                            <tr><td><b>Kecamatan</b></td><td>: ${props.kecamatan || '-'}</td></tr>
+                            <tr><td><b>Lebar</b></td><td>: ${props.lebar || '-'} m</td></tr>
+                            <tr><td><b>Kedalaman</b></td><td>: ${props.kedalaman || '-'} m</td></tr>
+                            <tr><td><b>Panjang</b></td><td>: ${props.panjang || '-'} m</td></tr>
+                        </table>
+                    `;
                     layer.bindPopup(content);
                 }
             }).addTo(map);
 
-            // 2. Menampilkan Arah Aliran (Panah)
-            // Menggunakan loop eachLayer agar panah muncul di setiap segmen
-            geojsonLayer.eachLayer(function(line) {
-                L.polylineDecorator(line, {
-                    patterns: [
-                        {
-                            offset: '20%', 
-                            repeat: '50px', 
-                            symbol: L.Symbol.arrowHead({
-                                pixelSize: 10,
-                                pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
-                            })
-                        }
-                    ]
+            // 4. Menambahkan Panah Arah Aliran
+            layerPHB.eachLayer(function(l) {
+                L.polylineDecorator(l, {
+                    patterns: [{
+                        offset: '20%', repeat: '60px', 
+                        symbol: L.Symbol.arrowHead({
+                            pixelSize: 10, 
+                            pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
+                        })
+                    }]
                 }).addTo(map);
             });
 
-            map.fitBounds(geojsonLayer.getBounds());
+            // Zoom otomatis ke lokasi data
+            map.fitBounds(layerPHB.getBounds());
         } else {
-            alert("Variabel dataTersier tidak ditemukan. Periksa file data_saluran.js");
+            console.error("Variabel dataTersier tidak ditemukan. Periksa isi data_saluranphb.js");
         }
+
+        // 5. Kontrol Layer
+        var baseMaps = { "OpenStreetMap": osm };
+        var overlayMaps = { "Saluran PHB": layerPHB };
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+
     </script>
 </body>
 </html>

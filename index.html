@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebGIS Drainase Jakarta</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
     <style>
-        #map { height: 600px; width: 100%; }
-        .info-popup { font-family: Arial; line-height: 1.4; }
+        /* Perbaikan agar Map Full Screen */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            width: 100%; 
+            overflow: hidden; /* Mencegah scrollbar muncul di pinggir */
+        }
+
+        #map { 
+            height: 100vh; /* Mengisi 100% tinggi layar browser */
+            width: 100%; 
+        }
+
+        .info-popup { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.4; 
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -18,9 +40,13 @@
     <script src="data_saluranmikro.js"></script>
 
     <script>
-        // 1. Inisialisasi Map
+        // 1. Inisialisasi Map (Center Jakarta)
         var map = L.map('map').setView([-6.1993, 106.8203], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        
+        // Basemap OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
         // --- LAYER 1: SALURAN PHB (BLUE & TEBAL) ---
         if (typeof dataTersier !== 'undefined') {
@@ -30,14 +56,14 @@
                     var p = feature.properties;
                     layer.bindPopup(`
                         <div class="info-popup">
-                            <b>PHB (Tersier): ${p.toponimi}</b><br>
-                            Dimensi: ${p.lebar} x ${p.kedalaman} m
+                            <b>PHB (Tersier): ${p.toponimi || 'Tanpa Nama'}</b><br>
+                            Dimensi: ${p.lebar || '-'} x ${p.kedalaman || '-'} m
                         </div>
                     `);
                 }
             }).addTo(map);
 
-            // Arah Aliran PHB
+            // Arah Aliran PHB (Merah)
             saluranLayer.eachLayer(function(layer) {
                 L.polylineDecorator(layer, {
                     patterns: [{
@@ -50,6 +76,7 @@
                 }).addTo(map);
             });
             
+            // Zoom otomatis ke area data PHB
             map.fitBounds(saluranLayer.getBounds());
         }
 
@@ -62,12 +89,32 @@
                     layer.bindPopup(`
                         <div class="info-popup">
                             <b>Saluran Mikro: ${p.toponimi || 'Tanpa Nama'}</b><br>
-                            Kecamatan: ${p.kecamatan}
+                            Kecamatan: ${p.kecamatan || '-'}
                         </div>
                     `);
                 }
             }).addTo(map);
+
+            // Penambahan Arah Aliran Mikro (Merah)
+            mikroLayer.eachLayer(function(layer) {
+                L.polylineDecorator(layer, {
+                    patterns: [{
+                        offset: '30%', 
+                        repeat: '40px', // Jarak panah lebih rapat untuk saluran kecil
+                        symbol: L.Symbol.arrowHead({
+                            pixelSize: 8, // Ukuran panah lebih kecil agar proporsional
+                            pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
+                        })
+                    }]
+                }).addTo(map);
+            });
         }
+
+        // Memastikan Leaflet menghitung ulang ukuran container setelah loading
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 500);
+
     </script>
 </body>
 </html>

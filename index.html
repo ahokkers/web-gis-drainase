@@ -14,14 +14,14 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
     
-    <script src="data_saluranphb.js"></script>
+    <script src="data_saluran.js"></script>
 
     <script>
         // 1. Inisialisasi Map
         var map = L.map('map').setView([-6.1993, 106.8203], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // 2. Cek apakah variabel dataTersier ada di dalam data_saluranphb.js
+        // 2. Cek apakah data termuat
         if (typeof dataTersier !== 'undefined') {
             
             // Tampilkan Garis Saluran
@@ -42,17 +42,13 @@
 
             // 3. Tambahkan Panah Arah Aliran (Merah)
             saluranLayer.eachLayer(function(layer) {
-                // Mengambil koordinat dari layer untuk memastikan posisi panah tepat
-                var coords = layer.getLatLngs();
-
-                L.polylineDecorator(coords, {
+                L.polylineDecorator(layer, {
                     patterns: [
                         {
                             offset: '20%', 
                             repeat: '60px', 
                             symbol: L.Symbol.arrowHead({
                                 pixelSize: 10,
-                                headAngle: 60,
                                 pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
                             })
                         }
@@ -64,7 +60,7 @@
             map.fitBounds(saluranLayer.getBounds());
             
         } else {
-            console.error("Data tidak ditemukan! Pastikan variabel di dalam data_saluranphb.js adalah 'dataTersier'");
+            console.error("Data tidak ditemukan! Pastikan file data_saluran.js sudah benar.");
         }
     </script>
 </body>

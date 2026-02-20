@@ -15,32 +15,59 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
     
     <script src="data_saluranphb.js"></script>
+    <script src="data_saluranmikro.js"></script>
 
     <script>
+        // 1. Inisialisasi Map
         var map = L.map('map').setView([-6.1993, 106.8203], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // --- LAYER 1: SALURAN PHB (Tersier) ---
+        // --- LAYER 1: SALURAN PHB (BLUE & TEBAL) ---
         if (typeof dataTersier !== 'undefined') {
             var saluranLayer = L.geoJSON(dataTersier, {
-                style: { color: "blue", weight: 6, opacity: 0.9 }
+                style: { color: "blue", weight: 6, opacity: 0.9 },
+                onEachFeature: function (feature, layer) {
+                    var p = feature.properties;
+                    layer.bindPopup(`
+                        <div class="info-popup">
+                            <b>PHB (Tersier): ${p.toponimi}</b><br>
+                            Dimensi: ${p.lebar} x ${p.kedalaman} m
+                        </div>
+                    `);
+                }
             }).addTo(map);
+
+            // Arah Aliran PHB
+            saluranLayer.eachLayer(function(layer) {
+                L.polylineDecorator(layer, {
+                    patterns: [{
+                        offset: '20%', repeat: '50px',
+                        symbol: L.Symbol.arrowHead({
+                            pixelSize: 10,
+                            pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
+                        })
+                    }]
+                }).addTo(map);
+            });
+            
             map.fitBounds(saluranLayer.getBounds());
         }
 
-        // --- LAYER 2: SALURAN MIKRO (Load dari GeoJSON hasil Mapshaper) ---
-        fetch('saluran_mikro.geojson') // Nama file hasil export Mapshaper
-            .then(response => response.json())
-            .then(data => {
-                L.geoJSON(data, {
-                    style: { color: "cyan", weight: 3, opacity: 0.8 },
-                    onEachFeature: function (feature, layer) {
-                        layer.bindPopup("<b>Saluran Mikro:</b> " + (feature.properties.toponimi || "Tanpa Nama"));
-                    }
-                }).addTo(map);
-            })
-            .catch(err => console.error("Gagal load file mikro:", err));
-
+        // --- LAYER 2: SALURAN MIKRO (CYAN & LEBIH TIPIS) ---
+        if (typeof dataMikro !== 'undefined') {
+            var mikroLayer = L.geoJSON(dataMikro, {
+                style: { color: "cyan", weight: 3, opacity: 0.8 },
+                onEachFeature: function (feature, layer) {
+                    var p = feature.properties;
+                    layer.bindPopup(`
+                        <div class="info-popup">
+                            <b>Saluran Mikro: ${p.toponimi || 'Tanpa Nama'}</b><br>
+                            Kecamatan: ${p.kecamatan}
+                        </div>
+                    `);
+                }
+            }).addTo(map);
+        }
     </script>
 </body>
 </html>

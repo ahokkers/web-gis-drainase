@@ -7,18 +7,20 @@
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    
     <style>
-        /* Perbaikan agar Map Full Screen */
+        /* CSS agar peta memenuhi layar */
         body, html { 
             margin: 0; 
             padding: 0; 
             height: 100%; 
             width: 100%; 
-            overflow: hidden; /* Mencegah scrollbar muncul di pinggir */
+            overflow: hidden; 
         }
 
         #map { 
-            height: 100vh; /* Mengisi 100% tinggi layar browser */
+            height: 100vh; 
             width: 100%; 
         }
 
@@ -27,6 +29,12 @@
             line-height: 1.4; 
             font-size: 13px;
         }
+
+        /* Sedikit penyesuaian agar box pencarian terlihat modern */
+        .leaflet-control-geocoder {
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body>
@@ -34,21 +42,23 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+    
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     
     <script src="data_saluranphb.js"></script>
     <script src="data_saluranmikro.js"></script>
 
     <script>
-        // 1. Inisialisasi Map (Center Jakarta)
+        // --- INISIALISASI PETA ---
         var map = L.map('map').setView([-6.1993, 106.8203], 15);
         
-        // Basemap OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // --- LAYER 1: SALURAN PHB (BLUE & TEBAL) ---
+        // --- LAYER 1: SALURAN PHB (BLUE) ---
         if (typeof dataTersier !== 'undefined') {
             var saluranLayer = L.geoJSON(dataTersier, {
                 style: { color: "blue", weight: 6, opacity: 0.9 },
@@ -63,7 +73,6 @@
                 }
             }).addTo(map);
 
-            // Arah Aliran PHB (Merah)
             saluranLayer.eachLayer(function(layer) {
                 L.polylineDecorator(layer, {
                     patterns: [{
@@ -76,11 +85,10 @@
                 }).addTo(map);
             });
             
-            // Zoom otomatis ke area data PHB
             map.fitBounds(saluranLayer.getBounds());
         }
 
-        // --- LAYER 2: SALURAN MIKRO (CYAN & LEBIH TIPIS) ---
+        // --- LAYER 2: SALURAN MIKRO (CYAN) ---
         if (typeof dataMikro !== 'undefined') {
             var mikroLayer = L.geoJSON(dataMikro, {
                 style: { color: "cyan", weight: 3, opacity: 0.8 },
@@ -95,14 +103,12 @@
                 }
             }).addTo(map);
 
-            // Penambahan Arah Aliran Mikro (Merah)
             mikroLayer.eachLayer(function(layer) {
                 L.polylineDecorator(layer, {
                     patterns: [{
-                        offset: '30%', 
-                        repeat: '40px', // Jarak panah lebih rapat untuk saluran kecil
+                        offset: '30%', repeat: '40px',
                         symbol: L.Symbol.arrowHead({
-                            pixelSize: 8, // Ukuran panah lebih kecil agar proporsional
+                            pixelSize: 8,
                             pathOptions: { fillOpacity: 1, color: 'red', stroke: false }
                         })
                     }]
@@ -110,7 +116,22 @@
             });
         }
 
-        // Memastikan Leaflet menghitung ulang ukuran container setelah loading
+        // --- FITUR PENCARIAN ALAMAT ---
+        var geocoder = L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: "Cari lokasi/jalan...",
+            errorMessage: "Tidak ditemukan."
+        })
+        .on('markgeocode', function(e) {
+            var center = e.geocode.center;
+            map.setView(center, 18); // Zoom ke lokasi hasil pencarian
+            L.marker(center).addTo(map)
+                .bindPopup(e.geocode.name)
+                .openPopup();
+        })
+        .addTo(map);
+
+        // Perbaikan render peta
         setTimeout(function() {
             map.invalidateSize();
         }, 500);

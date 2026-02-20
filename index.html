@@ -35,10 +35,10 @@
         }).addTo(map);
 
         // 2. Cek apakah dataTersier ada
-        if (typeof dataTersier !== 'undefined') {
+        if (typeof dataSaluranPHB !== 'undefined') {
             
             // Render Garis Saluran
-            var geojsonLayer = L.geoJSON(dataTersier, {
+            var geojsonLayer = L.geoJSON(dataSaluranPHB, {
                 style: {
                     color: '#2980b9',
                     weight: 3,
@@ -87,7 +87,7 @@
             map.fitBounds(geojsonLayer.getBounds());
 
         } else {
-            alert("Variabel 'dataTersier' tidak ditemukan! Pastikan file data_saluranphb.js sudah benar.");
+            alert("Variabel 'dataSaluranPHB' tidak ditemukan! Pastikan file data_saluranphb.js sudah benar.");
         }
 
         // Judul di Peta
